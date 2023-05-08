@@ -1,0 +1,16 @@
+data/
+cls_task/
+checkpoints/
+experiments/
+dataset/
+__pycache__
+static_eval/
+analysis_data/
+sample_data/
+
+/model/__pycache__/
+/utils/__pycache__/
+
+~/.*.pyc
+*.swp
+
