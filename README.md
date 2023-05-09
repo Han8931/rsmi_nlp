@@ -42,5 +42,5 @@ CUDA_VISIBLE_DEVICES=0 python3 textattack_main.py --model_dir_path ./cls_task/ch
 
 ### RSMI
 ```
-CUDA_VISIBLE_DEVICES=0 python3 textattack_main.py --model_dir_path ./cls_task/checkpoint/ --load_model test --dataset imdb --nth_data 0 --seed 0 --dataset_type test --save_data True --model roberta --attack_method textfooler --n_success 1000 --batch_size 1 --nth_layer 3 --noise_eps 0.3 --multi_mask 3 --max_rate 1.0 --num_ensemble 5 --hf_model True --max_seq_length 256 --model_type  --exp_msg Test --high_ens True --adv_batch_size 80 --alpha_p 0.98 --ens_grad_mask rand --two_step True
+CUDA_VISIBLE_DEVICES=0 python3 textattack_main.py --model_dir_path ./cls_task/checkpoint/ --load_model base_roberta_ag --dataset ag --nth_data 0 --seed 0 --dataset_type test --save_data True --model roberta --attack_method textfooler --n_success 1000 --batch_size 1 --nth_layer 3 --noise_eps 0.3 --multi_mask 3 --max_rate 1.0 --num_ensemble 5 --custom_forward True --hf_model True --max_seq_length 256 --model_type  --exp_msg Test --adv_batch_size 80 --alpha_p 0.98 --ens_grad_mask rand --two_step True
 ```

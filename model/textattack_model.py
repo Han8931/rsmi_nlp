@@ -2,8 +2,6 @@ import torch
 import transformers
 import textattack
 
-from model.train import batch_len
-
 from textattack.models.wrappers.pytorch_model_wrapper import PyTorchModelWrapper
 from textattack.attack_results import SuccessfulAttackResult, SkippedAttackResult, FailedAttackResult
 from textattack.attack_results.attack_result import AttackResult
@@ -272,8 +270,6 @@ class CustomWrapper(PyTorchModelWrapper):
         self.hf_model = args.hf_model
         self.max_seq_length = args.max_seq_length
 
-        self.ens_grad_mask = args.ens_grad_mask
-        self.grad_mask_sample = args.grad_mask_sample
         self.binom_ensemble = args.binom_ensemble
         self.two_step = args.two_step
         self.binom_n_eval = args.binom_n_eval
@@ -297,7 +293,6 @@ class CustomWrapper(PyTorchModelWrapper):
 
         input_ids = inputs_dict['input_ids']
         attention_mask = inputs_dict['attention_mask']
-        b_length = batch_len(input_ids, self.pad_idx)
 
         indices, _ = self.model.grad_mask(input_ids, attention_mask, topk=3, pred=None, mask_filter=True)
         self.model.zero_grad()           

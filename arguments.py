@@ -36,13 +36,12 @@ def get_parser(process_type: str):
     #parser.add_argument('--noise_ensemble', type=boolean_string, default=False, help='Sample noised representations and ensemble')
     parser.add_argument('--sample_mask', type=boolean_string, default=False, help='Sample a few mask indices from grad mask indices')
     parser.add_argument('--mask_batch_ratio', type=float, default=1.0, help='Sample and Mask bach ratio')
-    parser.add_argument('--mask_emb', type=boolean_string, default=False, help='Use [MASK] embedding instead of [CLS]')
-    parser.add_argument('--mask_idx', type=int, default=103, help='[MASK] idx')
     parser.add_argument('--rand_mask', type=boolean_string, default=False, help='Masking input randomly')
     parser.add_argument('--grad_mask_sample', type=boolean_string, default=False, help='Sampling based GradMasking')
     parser.add_argument('--ens_grad_mask', default='rand', type=str, help='EnsembleGradMaskingType', choices=['grad', 'rand', 'noise'])
     parser.add_argument('--two_step', type=boolean_string, default=True, help='Two-Step Monte-Carlo Sampling Ensemble')
     parser.add_argument('--multi_mask', type=int, default=0, help='Masking multiple token')
+    parser.add_argument('--mask_idx', type=int, default=103, help='[MASK] idx')
 
     parser.add_argument('--epochs', type=int, default=10, help='Training Epochs')
     parser.add_argument('--batch_size', type=int, default=16, help='batch size')
@@ -62,9 +61,6 @@ def get_parser(process_type: str):
     parser.add_argument('--num_classes', type=int, default=2, help='Number of classes of datasets')
     parser.add_argument('--pad_idx', type=int, default=0, help='Padding idx')
     parser.add_argument('--max_seq_length', type=int, default=512, help='Maximum sequence length')
-
-    parser.add_argument('--high_ens', type=boolean_string, default=False, help='Ensemble with high-confident samples')
-    parser.add_argument('--conf_t', default=0.70, type=float, help='Confidence threshold for high ens')
 
     parser.add_argument('--binom_p', type=boolean_string, default=False, help='Ensemble with high-confident samples')
     parser.add_argument('--alpha_p', default=0.70, type=float, help='Statistical significance')

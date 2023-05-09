@@ -20,7 +20,6 @@ class SeqClsWrapper(nn.Module):
         self.transformer = args.model
         self.custom_forward = args.custom_forward
 
-        self.mask_emb = args.mask_emb
 
         self.pad_idx = args.pad_idx
         self.mask_idx = args.mask_idx
@@ -29,9 +28,6 @@ class SeqClsWrapper(nn.Module):
         self.binom_p = args.binom_p
         self.alpha_p = args.alpha_p
 
-        self.ens_grad_mask = args.ens_grad_mask
-        self.grad_mask_sample = args.grad_mask_sample
-
         self.binom_ensemble = args.binom_ensemble
         self.num_ensemble = args.num_ensemble
         self.w_gn = args.w_gn
@@ -39,7 +35,7 @@ class SeqClsWrapper(nn.Module):
 
     def forward(self, input_ids, attention_mask, labels=None, delta_grad=None, grad_idx=None):
         """
-        - x: input
+        - custom_forward: to add noise to word embeddings
         """
         if self.custom_forward:
             if delta_grad is not None:
@@ -52,8 +48,6 @@ class SeqClsWrapper(nn.Module):
                 output = self.classifier_forward(outputs, labels, grad_idx)
         else:
             output = self.model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
-
-#        outputs = self.model(inputs_embeds=word_embeds, attention_mask=attention_mask, labels=labels)
 
         return output
     
@@ -103,11 +97,7 @@ class SeqClsWrapper(nn.Module):
                 logits = self.model.classifier(pooled_output)
             else:
                 sequence_output = outputs[0] 
-                if self.mask_emb and grad_idx is not None:
-                    b_size = outputs[0].size(0)
-                    seq_inp = sequence_output[range(b_size), sent_idx,:] # MASK token
-                else:
-                    seq_inp = sequence_output[:,0] # CLS token
+                seq_inp = sequence_output[:,0] # CLS token
 
                 # Roberta Style > add one more dropout layer here
                 pooled_output = self.model.dropout(seq_inp)
@@ -120,7 +110,7 @@ class SeqClsWrapper(nn.Module):
             sequence_output = outputs[0]  # (bs, seq_len, dim)
             logits = self.model.classifier(sequence_output)
         else:
-            print("Not Implemented")
+            raise Exception("Not Implemented")
 
         loss = None
         if labels is not None:

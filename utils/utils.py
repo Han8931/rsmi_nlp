@@ -8,6 +8,32 @@ from functools import wraps
 import numpy as np
 import pickle
 
+def input_masking_function(input_ids, indices, args):
+    masked_ids = input_ids.clone()
+
+    if args.mask_batch_ratio<1.0:
+        b_size = masked_ids.shape[0]
+        b_idx_ = np.arange(b_size)
+        np.random.shuffle(b_idx_)
+        b_idx = b_idx_[:int(b_size*args.mask_batch_ratio)]
+
+        for idx in b_idx:
+            ids_ = masked_ids[idx]
+            m_idx = indices[idx]
+            for j in range(args.multi_mask):
+                try:
+                    ids_[m_idx[j]] = args.mask_idx
+                except:
+                    continue
+    else:
+        for ids_, m_idx in zip(masked_ids, indices): # for each sample in a batch
+            for j in range(args.multi_mask):
+                try:
+                    ids_[m_idx[j]] = args.mask_idx
+                except:
+                    continue
+    return masked_ids
+
 def eval_time_wrapper(func):
     @wraps(func)
     def function_wrapper(model, dataloader, args, eval_mode, data_collator=None):

@@ -11,7 +11,10 @@ from model.train import LinearScheduler, batch_len
 from model.model_adv import *
 from model.load_model import *
 
-from utils.utils import print_args, save_checkpoint, load_checkpoint, model_evaluation
+from utils.utils import (print_args, save_checkpoint, 
+                         load_checkpoint, model_evaluation, 
+                         input_masking_function
+                         ) 
 from utils.dataloader import trans_dataloader
 import utils.logger as logger
 import time, datetime
@@ -56,32 +59,6 @@ print(f"Load Model...")
 model = noisy_forward_loader(args)
 model = SeqClsWrapper(model, args)
 
-def input_masking_function(input_ids, indices, args):
-    masked_ids = input_ids.clone()
-
-    if args.mask_batch_ratio<1.0:
-        b_size = masked_ids.shape[0]
-        b_idx_ = np.arange(b_size)
-        np.random.shuffle(b_idx_)
-        b_idx = b_idx_[:int(b_size*args.mask_batch_ratio)]
-
-        for idx in b_idx:
-            ids_ = masked_ids[idx]
-            m_idx = indices[idx]
-            for j in range(args.multi_mask):
-                try:
-                    ids_[m_idx[j]] = args.mask_idx
-                except:
-                    continue
-    else:
-        for ids_, m_idx in zip(masked_ids, indices): # for each sample in a batch
-            for j in range(args.multi_mask):
-                try:
-                    ids_[m_idx[j]] = args.mask_idx
-                except:
-                    continue
-    return masked_ids
-
 if args.eval==True:
     model = load_checkpoint(model, args.load_model, args.model_dir_path)
     model.to(args.device)
@@ -100,7 +77,6 @@ if args.eval==True:
 
         if args.num_ensemble>1:
             mask_indices, _ = model.grad_mask(input_ids, attention_mask)
-            delta_grad = None
             logits = model.two_step_ensemble(input_ids, attention_mask, mask_indices, args.num_ensemble, args.binom_ensemble)
             correct = logits.argmax(dim=-1).eq(labels)
             TP += correct.sum().item()
@@ -150,7 +126,6 @@ for epoch in range(args.epochs):
         input_ids = batch['input_ids'].to(args.device)
         attention_mask = batch['attention_mask'].to(args.device)
         labels = batch['labels'].to(args.device) 
-        b_length = batch_len(input_ids, args.pad_idx)
 
         model.eval()
         indices, delta_grad = model.grad_mask(input_ids, attention_mask, topk=3, pred=labels, mask_filter=True)

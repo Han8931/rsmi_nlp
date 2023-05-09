@@ -4,11 +4,9 @@ Adversarial example generation scripts with TextAttack_v2
 import torch
 from torch.utils.data import DataLoader
 
-import pdb
 import numpy as np
 import random
-import os, sys
-import argparse
+import os
 import pandas as pd
 
 
@@ -22,7 +20,7 @@ from utils.utils import boolean_string, print_args, load_checkpoint,
 from utils.dataloader import text_dataloader
 
 from datetime import timedelta
-import time, datetime
+import time
 
 from arguments import get_parser
 
