@@ -21,12 +21,26 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-- Train:
+## Train Models:
+
+### Fine-tune PLMs
+```
+CUDA_VISIBLE_DEVICES=0 python3 main_base.py --model_dir_path ./cls_task/checkpoint/ --dataset ag --batch_size 24 --epochs 10 --save_model base_roberta_ag --model roberta --save True --max_seq_length 256 --lr 0.00001
+```
+
+### RSMI
 ```
 CUDA_VISIBLE_DEVICES=0 python3 main_org_seq.py --model_dir_path ./cls_task/checkpoint/ --dataset imdb --batch_size 16 --epochs 10 --save_model test --model roberta --nth_layers 3 --noise_eps 0.2 --max_seq_length 256 --multi_mask 2 --eval False --two_step True
 ```
-- Attack:
+
+## Attack Models:
+
+### Fine-tuned PLMs
 ```
-CUDA_VISIBLE_DEVICES=0 python3 textattack_main.py --model_dir_path ./cls_task/checkpoint/ --load_model test --dataset imdb --nth_data 0 --seed 0 --dataset_type test --save_data True --model roberta --attack_method textfooler --n_success 1000 --batch_size 1 --nth_layer 3 --noise_eps 0.3 --multi_mask 3 --max_rate 1.0 --num_ensemble 5 --hf_model True --max_seq_length 256 --model_type noise --exp_msg Test --high_ens True --adv_batch_size 80 --alpha_p 0.98 --ens_grad_mask rand --two_step True
+CUDA_VISIBLE_DEVICES=0 python3 textattack_main.py --model_dir_path ./cls_task/checkpoint/ --load_model base_roberta_ag --dataset ag --nth_data 0 --seed 0 --dataset_type test --save_data True --model roberta --attack_method textfooler --n_success 1000 --batch_size 1 --max_seq_length 256 --model_type base --max_rate 1.0
 ```
 
+### RSMI
+```
+CUDA_VISIBLE_DEVICES=0 python3 textattack_main.py --model_dir_path ./cls_task/checkpoint/ --load_model test --dataset imdb --nth_data 0 --seed 0 --dataset_type test --save_data True --model roberta --attack_method textfooler --n_success 1000 --batch_size 1 --nth_layer 3 --noise_eps 0.3 --multi_mask 3 --max_rate 1.0 --num_ensemble 5 --hf_model True --max_seq_length 256 --model_type  --exp_msg Test --high_ens True --adv_batch_size 80 --alpha_p 0.98 --ens_grad_mask rand --two_step True
+```

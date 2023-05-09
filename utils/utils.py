@@ -67,66 +67,6 @@ def model_evaluation(model, dataloader, args, eval_mode=None, data_collator=None
 
     return acc
 
-def module_loader(args):
-    """
-    Load ClsModel in Huggingface
-    """
-    if args.model == 'bert':
-        from transformers import BertForSequenceClassification
-        model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=args.num_classes)
-
-        if args.nth_layers>-1:
-            import types
-            from model.model_adv_multi import bert_noise_forward
-            model.bert.encoder.forward = types.MethodType(bert_noise_forward, model.bert.encoder)
-
-            model.config.sn = args.spectral_norm
-            model.config.fixed_noise = args.fixed_noise
-            model.config.single_layer = args.single_layer
-            model.config.num_labels = args.num_classes
-            model.config.nth_layers = args.nth_layers
-            model.config.noise_eps = args.noise_eps
-            model.config.gb_noise = args.gb_noise
-
-            model.config.conical_eps = args.conical_eps
-            model.config.eps_scale = args.eps_scale
-            model.config.eps_max = args.eps_max
-
-        else:
-            model.config.num_labels = args.num_classes
-            model.config.sn = args.spectral_norm
-
-    elif args.model == 'roberta':
-        from transformers import RobertaForSequenceClassification
-        model = RobertaForSequenceClassification.from_pretrained('roberta-base', num_labels=args.num_classes)
-
-        if args.nth_layers>-1:
-            import types
-            from model.model_adv_multi import roberta_noise_forward 
-            model.roberta.encoder.forward = types.MethodType(roberta_noise_forward, model.roberta.encoder)
-
-            model.config.sn = args.spectral_norm
-            model.config.fixed_noise = args.fixed_noise
-            model.config.single_layer = args.single_layer
-            model.config.num_labels = args.num_classes
-            model.config.nth_layers = args.nth_layers
-            model.config.noise_eps = args.noise_eps
-            model.config.gb_noise = args.gb_noise
-
-            model.config.conical_eps = args.conical_eps
-            model.config.eps_scale = args.eps_scale
-            model.config.eps_max = args.eps_max
-
-            model.config.norm_vec = args.norm_vec
-
-        else:
-            model.config.num_labels = args.num_classes
-            model.config.sn = args.spectral_norm
-
-    else:
-        print("Specify Base model correctly...")
-
-    return model
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)

@@ -1,26 +1,8 @@
 import torch
-import torch.nn as nn
-import torchvision
-import torch.nn.functional as F
 from torch.utils.data import DataLoader
-
 from datasets import load_dataset, Dataset, list_datasets
+# from abc import *
 
-import numpy as np
-import pandas as pd
-import pdb
-import string, operator
-import re
-
-from abc import *
-import json
-
-import random
-import sys, os, pdb
-import time, datetime
-import argparse, copy
-
-import string
 
 class ClsDataset(torch.utils.data.Dataset):
     def __init__(self, encodings, labels):
@@ -40,12 +22,7 @@ class ClsDataset(torch.utils.data.Dataset):
 def trans_dataloader(dataset, tokenizer, args, data_collator=None):
 
     if dataset == 'ag':
-        """
-        0: world
-        1: sports
-        2: buisiness
-        3: Sci/Tech
-        """
+        """0,1,2,3: world, sports, buisiness, Sci/Tech """
         dataset = load_dataset("ag_news")
         test, train = dataset['test'], dataset['train']
 
@@ -54,9 +31,7 @@ def trans_dataloader(dataset, tokenizer, args, data_collator=None):
         dev = split['test']
 
     elif dataset == 'imdb':
-        """
-        Sentiment polarity datasets: binary 0:neg/1:pos
-        """
+        """ Sentiment polarity datasets: binary 0:neg/1:pos """
         dataset = load_dataset("imdb")
         test, train = dataset['test'], dataset['train']
 
@@ -65,8 +40,7 @@ def trans_dataloader(dataset, tokenizer, args, data_collator=None):
         dev = split['test']
 
     else:
-        print("Specift dataset correctly")
-        exit(0)
+        raise Exception("Specift dataset correctly")
 
     print(f"Trainset Size: {len(train)}")
     print(f"Testset Size: {len(test)}")
@@ -75,19 +49,14 @@ def trans_dataloader(dataset, tokenizer, args, data_collator=None):
     train_data = tokenizer(train['text'], padding=True, truncation=True, max_length=args.max_seq_length)
     test_data = tokenizer(test['text'], padding=True, truncation=True, max_length=args.max_seq_length)
     dev_data = tokenizer(dev['text'], padding=True, truncation=True, max_length=args.max_seq_length)
-    # dev_data = tokenizer(dev['text'], padding=True, truncation=True)
 
     train_label = train['label']
     test_label = test['label']
     dev_label = dev['label']
 
-    if args.self_supervised:
-        train_set = SSLDataset(train_data, train_label)
-        test_set = SSLDataset(test_data, test_label)
-    else:
-        train_set = ClsDataset(train_data, train_label)
-        test_set = ClsDataset(test_data, test_label)
-        dev_set = ClsDataset(dev_data, dev_label)
+    train_set = ClsDataset(train_data, train_label)
+    test_set = ClsDataset(test_data, test_label)
+    dev_set = ClsDataset(dev_data, dev_label)
 
     train_dataloader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, collate_fn=data_collator)
     test_dataloader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True, collate_fn=data_collator)
@@ -95,16 +64,8 @@ def trans_dataloader(dataset, tokenizer, args, data_collator=None):
 
     return train_dataloader, test_dataloader, dev_dataloader
 
-
 def text_dataloader(dataset, args):
-
     if dataset == 'ag':
-        """
-        0: world
-        1: sports
-        2: buisiness
-        3: Sci/Tech
-        """
         dataset = load_dataset("ag_news")
         test, train = dataset['test'], dataset['train']
 
@@ -115,9 +76,6 @@ def text_dataloader(dataset, args):
         args.num_classes = 4
 
     elif dataset == 'imdb':
-        """
-        Sentiment polarity datasets: binary 0:neg/1:pos
-        """
         args.num_classes = 2
         dataset = load_dataset("imdb")
         test, train = dataset['test'], dataset['train']
@@ -127,12 +85,10 @@ def text_dataloader(dataset, args):
         dev = split['test']
 
     else:
-        print("Specift dataset correctly")
-        exit(0)
+        raise Exception("Specift dataset correctly")
 
     print(f"Trainset Size: {len(train)}")
     print(f"Testset Size: {len(test)}")
-
 
     return train, test
 

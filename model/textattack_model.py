@@ -2,7 +2,6 @@ import torch
 import transformers
 import textattack
 
-import pdb
 from model.train import batch_len
 
 from textattack.models.wrappers.pytorch_model_wrapper import PyTorchModelWrapper

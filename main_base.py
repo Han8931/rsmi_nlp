@@ -1,13 +1,16 @@
 """
-- Train with SequenceClsModel in Huggingface
+- Fine-tune pre-trained language models (PLMs)
+- SeqClsModel in Huggingface
 """
 import torch
+from transformers import AdamW
 
 import numpy as np
 import random
 
 from model.train import LinearScheduler, batch_len
 from model.model_adv import *
+from model.load_model import *
 
 from utils.utils import print_args, save_checkpoint, load_checkpoint, model_evaluation
 from utils.dataloader import trans_dataloader 
@@ -16,7 +19,6 @@ import time, datetime
 from datetime import timedelta
 
 from arguments import get_parser
-from transformers import AdamW
 
 args = get_parser("Training") 
 print_args(args)
@@ -40,52 +42,16 @@ if args.seed>0:
     torch.manual_seed(SEED)
     torch.backends.cudnn.deterministic = True
 
-print(f"Load Tokenizer...")
+tokenizer = load_tokenizer(args)
 
-if args.model == 'bert':
-    from transformers import BertTokenizer
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-elif args.model == 'roberta':
-    from transformers import RobertaTokenizer
-    tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
-
-args.pad_idx = tokenizer.pad_token_id
-args.mask_idx = tokenizer.mask_token_id
-
-print(f"Tokenizer: {args.model} || PAD: {args.pad_idx} || MASK: {args.mask_idx}") 
-
-train_dataloader, test_dataloader, dev_dataloader = trans_dataloader(args.dataset, tokenizer, args)
-
-if args.dataset == 'ag':
-    print(f"Load AGNews Dataset...")
-    args.num_classes = 4
-
-elif args.dataset == 'imdb':
-    print(f"Load IMDB Dataset...")
-    args.num_classes = 2
-
-else:
-    print("Classification task must be either ag or mr")
+train_dataloader, test_dataloader, dev_dataloader = \
+        trans_dataloader(args.dataset, tokenizer, args)
 
 train_niter = len(train_dataloader)
 total_iter = len(train_dataloader) * args.epochs
 
 # Create Model 
-print(f"Load Model...")
-
-if args.model == 'bert':
-    from transformers import BertForSequenceClassification
-    model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=args.num_classes)
-
-elif args.model == 'roberta':
-    from transformers import RobertaForSequenceClassification
-    # model.roberta.encoder # model.roberta.embeddings # model.classifier
-    model = RobertaForSequenceClassification.from_pretrained('roberta-base', num_labels=args.num_classes)
-
-else:
-    print("Specify Base model correctly...")
-
-model.config.num_labels = args.num_classes
+model = load_base_model(args)
 
 if args.eval==True:
     model = load_checkpoint(model, args.load_model, args.model_dir_path)
@@ -179,7 +145,7 @@ for epoch in range(args.epochs):
     if dev_acc>best_dev_acc:
         best_dev_acc = dev_acc
         best_dev_epoch = epoch
-    save_checkpoint(args.save_model, model, epoch, ckpt_dir=args.model_dir_path)
+        save_checkpoint(args.save_model, model, epoch, ckpt_dir=args.model_dir_path)
 
     log = f"Epoch: {epoch} || Dev Acc: {dev_acc:.4f} || BestDevAcc: {best_dev_acc:.4f} || BestEpoch: {best_dev_epoch}"
     exp_log.info(log)
@@ -195,19 +161,7 @@ print("Start TestSet Evaluation...")
 load_model_name = args.save_model + f"_{best_dev_epoch}"
 print(f"Load BestDev Model...: {load_model_name}") 
 
-if args.model == 'bert':
-    from transformers import BertForSequenceClassification
-    model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=args.num_classes)
-    model.config.num_labels = args.num_classes
-
-elif args.model == 'roberta':
-    from transformers import RobertaForSequenceClassification
-    model = RobertaForSequenceClassification.from_pretrained('roberta-base', num_labels=args.num_classes)
-    model.config.num_labels = args.num_classes
-
-else:
-    print("Specify Base model correctly...")
-
+model = load_base_model(args)
 model = load_checkpoint(model, load_model_name, args.model_dir_path)
 model.to(args.device)
 model.eval()

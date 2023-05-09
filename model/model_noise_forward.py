@@ -126,9 +126,6 @@ def roberta_noise_forward(
 
     next_decoder_cache = () if use_cache else None
 
-#    if self.config.fixed_noise:
-#        seed = 1
-#        torch.manual_seed(seed)
 
     for i, layer_module in enumerate(self.layer):
         if output_hidden_states:

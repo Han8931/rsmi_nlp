@@ -3,17 +3,15 @@
 """
 import torch
 from transformers import AdamW
-from torch.optim import SGD
 
-import pdb
 import numpy as np
 import random
 
 from model.train import LinearScheduler, batch_len
 from model.model_adv import *
+from model.load_model import *
 
 from utils.utils import print_args, save_checkpoint, load_checkpoint, model_evaluation
-from utils.utils import module_loader
 from utils.dataloader import trans_dataloader
 import utils.logger as logger
 import time, datetime
@@ -45,46 +43,17 @@ if args.seed>0:
     torch.manual_seed(SEED)
     torch.backends.cudnn.deterministic = True
 
+tokenizer = load_tokenizer(args)
 
-print(f"Load Tokenizer...")
-
-if args.model == 'bert':
-    from transformers import BertTokenizer
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-elif args.model == 'roberta':
-    from transformers import RobertaTokenizer
-    tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
-elif args.model == 'roberta-large':
-    from transformers import RobertaTokenizer
-    tokenizer = RobertaTokenizer.from_pretrained('roberta-large')
-elif args.model == 'distil':
-    from transformers import DistilBertTokenizerFast
-    tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased')
-
-args.pad_idx = tokenizer.pad_token_id
-args.mask_idx = tokenizer.mask_token_id
-
-print(f"Tokenizer: {args.model} || PAD: {args.pad_idx} || MASK: {args.mask_idx}") 
-
-train_dataloader, test_dataloader, dev_dataloader = trans_dataloader(args.dataset, tokenizer, args)
-
-if args.dataset == 'ag':
-    print(f"Load AGNews Dataset...")
-    args.num_classes = 4
-
-elif args.dataset == 'imdb':
-    print(f"Load IMDB Dataset...")
-    args.num_classes = 2
-
-else:
-    print("Classification task must be either ag or mr")
+train_dataloader, test_dataloader, dev_dataloader = \
+        trans_dataloader(args.dataset, tokenizer, args)
 
 train_niter = len(train_dataloader)
 total_iter = len(train_dataloader) * args.epochs
 
 # Create Model 
 print(f"Load Model...")
-model = module_loader(args)
+model = noisy_forward_loader(args)
 model = SeqClsWrapper(model, args)
 
 def input_masking_function(input_ids, indices, args):
@@ -160,16 +129,7 @@ if args.eval==True:
 else:
     model.to(args.device)
     model.train()
-
-    if args.optim=='adamw':
-        optimizer = AdamW(model.parameters(), lr=args.lr)
-    elif args.optim=='sgd':
-        optimizer = SGD(model.parameters(), lr=args.lr)
-
-if args.freeze_embed:
-    print("Freeze word embeddings...") 
-    for param in model.enc.encoder.embeddings.word_embeddings.parameters():
-        param.requires_grad = False
+    optimizer = AdamW(model.parameters(), lr=args.lr)
 
 print("Start Training...")
 start_train = time.perf_counter()
@@ -178,8 +138,6 @@ logger.args_logger(args, args.exp_dir)
 
 best_dev_epoch = 0
 best_dev_acc = 0
-
-
 for epoch in range(args.epochs):
     model.train()
     loss_epoch = []
@@ -243,7 +201,7 @@ print("Start TestSet Evaluation...")
 load_model_name = args.save_model + f"_{best_dev_epoch}"
 print(f"Load BestDev Model...: {load_model_name}") 
 
-model = module_loader(args)
+model = noisy_forward_loader(args)
 model = SeqClsWrapper(model, args)
 model = load_checkpoint(model, load_model_name, args.model_dir_path)
 model.to(args.device)

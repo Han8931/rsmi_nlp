@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from transformers.modeling_outputs import SequenceClassifierOutput
-from torch.nn.utils.parametrizations import spectral_norm
 
 import pdb
 import numpy as np
@@ -106,7 +105,7 @@ class SeqClsWrapper(nn.Module):
                 sequence_output = outputs[0] 
                 if self.mask_emb and grad_idx is not None:
                     b_size = outputs[0].size(0)
-                    seq_inp = sequence_output[range(b_size),sent_idx,:] # MASK token
+                    seq_inp = sequence_output[range(b_size), sent_idx,:] # MASK token
                 else:
                     seq_inp = sequence_output[:,0] # CLS token
 
@@ -321,8 +320,6 @@ class RobertaClassificationHead(nn.Module):
         super().__init__()
 
         self.dense = nn.Linear(config.hidden_size, config.hidden_size)
-        if config.sn:
-            self.dense = spectral_norm(self.dense)
          
         # torch.linalg.matrix_norm(self.dense.weight, 2)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)

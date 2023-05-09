@@ -11,13 +11,15 @@ import os, sys
 import argparse
 import pandas as pd
 
+
 from textattack.attack_results import SuccessfulAttackResult, FailedAttackResult, SkippedAttackResult
 from model.textattack_model import CustomWrapper, print_function, AttackSummary, HuggingFaceModelWrapper
 
 from model.model_adv import *
+from model.load_model import *
 
-from utils.utils import boolean_string, print_args, load_checkpoint, module_loader
-from utils.dataloader_rat import text_dataloader
+from utils.utils import boolean_string, print_args, load_checkpoint, 
+from utils.dataloader import text_dataloader
 
 from datetime import timedelta
 import time, datetime
@@ -88,22 +90,14 @@ args.mask_idx = tokenizer.mask_token_id
 args.cls_token = tokenizer.cls_token_id
 args.sep_token = tokenizer.sep_token_id
 
-if args.model_type=='noise':
-    print("Noise Model is Loaded")
-    model = module_loader(args)
+if args.model_type=='rsmi':
+    print("RSMI is Loaded")
+    model = noisy_forward_loader(args)
     model = SeqClsWrapper(model, args)
 
 elif args.model_type=='base':
     print("Base Model is Loaded")
-    if args.model == 'bert':
-        from transformers import BertForSequenceClassification
-        model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=args.num_classes)
-        model.config.num_labels = args.num_classes
-
-    elif args.model == 'roberta':
-        from transformers import RobertaForSequenceClassification
-        model = RobertaForSequenceClassification.from_pretrained('roberta-base', num_labels=args.num_classes)
-        model.config.num_labels = args.num_classes
+    model = load_base_model(args)
 
 model = load_checkpoint(model, args.load_model, args.model_dir_path)
 model.eval()
