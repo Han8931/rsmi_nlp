@@ -9,6 +9,8 @@ import numpy as np
 import pickle
 
 def input_masking_function(input_ids, indices, args):
+    """Mask input tokens based on indices computed by grad_mask function"""
+
     masked_ids = input_ids.clone()
 
     if args.mask_batch_ratio<1.0:
@@ -58,7 +60,7 @@ def model_evaluation(model, dataloader, args, eval_mode=None, data_collator=None
             attention_mask = batch['attention_mask'].to(args.device)
             labels = batch['labels'].to(args.device) 
 
-            indices, _ = model.grad_mask(input_ids, attention_mask, topk=3, pred=None, mask_filter=True)
+            indices, _ = model.grad_mask(input_ids, attention_mask, pred=None, mask_filter=True)
             model.zero_grad()           
 
             masked_ids = input_ids.clone()

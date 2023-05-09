@@ -71,7 +71,6 @@ if args.eval==True:
             input_ids = batch['input_ids'].to(args.device)
             attention_mask = batch['attention_mask'].to(args.device)
             labels = batch['labels'].to(args.device) 
-            b_length = batch_len(input_ids, args.pad_idx)
 
             output = model(input_ids, attention_mask)
 
@@ -114,7 +113,6 @@ for epoch in range(args.epochs):
         input_ids = batch['input_ids'].to(args.device)
         attention_mask = batch['attention_mask'].to(args.device)
         labels = batch['labels'].to(args.device) 
-        b_length = batch_len(input_ids, args.pad_idx)
 
         output = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
 
@@ -130,11 +128,8 @@ for epoch in range(args.epochs):
             print(log, flush=True)
             exp_log.info(log)
 
-        if args.scheduler=='cosine':
-            lr_scheduler.step()
-        elif args.scheduler=='linear':
-            curr = epoch * train_niter + batch_idx
-            LinearScheduler(optimizer, total_iter, curr, args.lr)
+        curr = epoch * train_niter + batch_idx
+        LinearScheduler(optimizer, total_iter, curr, args.lr)
 
     log = f"\nEpoch: {epoch} || Loss: {np.mean(loss_epoch):.3f}"
     print(log, flush=True)

@@ -152,30 +152,32 @@ class SeqClsWrapper(nn.Module):
             embed_layer = encoder.get_input_embeddings()
             return embed_layer(input_ids)
 
-    def grad_mask(self, input_ids, attention_mask, topk=3, pred=None, mask_filter=True):
+    def grad_mask(self, input_ids, attention_mask, pred=None, mask_filter=True):
         """
-        - x: input
+        - Compute masking indices of samples based on gradient signals
         """
         b_length = batch_len(input_ids, self.pad_idx)
 
-        if topk<1.0 or topk==1.0:
-            topk = int(b_length[0].item()*topk)
-        else:
-            topk = int(topk)
+        # if topk<=1.0:
+        #     topk = int(b_length[0].item()*topk)
+        # else:
+        #     topk = int(topk)
 
+        # Some samples are too short to mask tokens
         for b_len in b_length:
-            if b_len.item()<topk:
-                topk = b_len.item()-1
+            if b_len.item()<5:
+                topk = 1
 
         delta_grad_ = self.get_emb_grad(input_ids, attention_mask, pred)
         delta_grad = delta_grad_[0].detach()
 
+        # Compute L2-norm of gradients: Saliency Score
         norm_grad = torch.norm(delta_grad, p=2, dim=-1)
 
         indice_list = []
         for i, len_ in enumerate(b_length):
-            if len_>20:
-                val, indices_ = torch.topk(norm_grad[i, :len_], 10)
+            if len_>10:
+                val, indices_ = torch.topk(norm_grad[i, :len_], 5)
             else:
                 val, indices_ = torch.topk(norm_grad[i, :len_], topk)
 
@@ -265,7 +267,7 @@ class SeqClsWrapper(nn.Module):
                 input_ids_ = input_ids[j].unsqueeze(0)
                 attn_m = attention_mask[j].unsqueeze(0)
 
-                mask_ind, _ = self.grad_mask(input_ids_, attn_m, topk=3, pred=None, mask_filter=True)
+                mask_ind, _ = self.grad_mask(input_ids_, attn_m, pred=None, mask_filter=True)
                 self.model.zero_grad()           
                 re_ids = input_ids_.repeat(binom_ensemble, 1)
                 re_attn = attn_m.repeat(binom_ensemble, 1)
@@ -292,14 +294,6 @@ class SeqClsWrapper(nn.Module):
                     ids_[k] = self.mask_idx
                 except:
                     continue
-#            elif m_func=='grad':
-#                for j in range(self.multi_mask):
-#                    try:
-#                        ids_[mask_idx[j]] = self.mask_idx
-#                    except:
-#                        continue
-#            else:
-#                print("Masking function type error")
 
         return masked_ids
 

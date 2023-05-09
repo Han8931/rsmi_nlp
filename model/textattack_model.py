@@ -294,7 +294,7 @@ class CustomWrapper(PyTorchModelWrapper):
         input_ids = inputs_dict['input_ids']
         attention_mask = inputs_dict['attention_mask']
 
-        indices, _ = self.model.grad_mask(input_ids, attention_mask, topk=3, pred=None, mask_filter=True)
+        indices, _ = self.model.grad_mask(input_ids, attention_mask, pred=None, mask_filter=True)
         self.model.zero_grad()           
         logits = self.model.two_step_ensemble(input_ids, attention_mask, indices, self.num_ensemble, self.binom_ensemble)
 

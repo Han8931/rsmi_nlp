@@ -7,7 +7,7 @@ from transformers import AdamW
 import numpy as np
 import random
 
-from model.train import LinearScheduler, batch_len
+from model.train import LinearScheduler
 from model.model_adv import *
 from model.load_model import *
 
@@ -128,7 +128,7 @@ for epoch in range(args.epochs):
         labels = batch['labels'].to(args.device) 
 
         model.eval()
-        indices, delta_grad = model.grad_mask(input_ids, attention_mask, topk=3, pred=labels, mask_filter=True)
+        indices, delta_grad = model.grad_mask(input_ids, attention_mask, pred=labels, mask_filter=True)
         model.zero_grad()           
 
         masked_ids = input_masking_function(input_ids, indices, args)
