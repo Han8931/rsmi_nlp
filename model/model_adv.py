@@ -20,11 +20,11 @@ class SeqClsWrapper(nn.Module):
         self.transformer = args.model
         self.custom_forward = args.custom_forward
 
-
         self.pad_idx = args.pad_idx
         self.mask_idx = args.mask_idx
         self.multi_mask = args.multi_mask
 
+        self.vote_type = args.vote_type
         self.binom_p = args.binom_p
         self.alpha_p = args.alpha_p
 
@@ -232,10 +232,9 @@ class SeqClsWrapper(nn.Module):
         return emb_grads
 
     def two_step_ensemble(self, input_ids, attention_mask, mask_indices, num_ensemble=5, binom_ensemble=50):
-        prediction_score_list = []
         logit_score_list = []
 
-        for i in range(num_ensemble):
+        for _ in range(num_ensemble):
             masked_ids = input_ids.clone()
             for ids_, m_idx in zip(masked_ids, mask_indices): 
                 for j in range(self.multi_mask):
@@ -249,14 +248,22 @@ class SeqClsWrapper(nn.Module):
 
             logit_score_list.append(output['logits'])
 
-        logit_tensor_ = torch.stack(logit_score_list)
-
         prediction_score = torch.zeros(input_ids.size(0), self.num_classes).to(self.device)
-        for logit_ in logit_score_list:
-            preds = logit_.argmax(dim=-1)
-            prediction_score[range(input_ids.size(0)), preds] +=1
 
-        logits = logit_tensor_.mean(dim=0) # Average logit score
+        if self.vote_type=='max':
+            for logit_ in logit_score_list:
+                preds = logit_.argmax(dim=-1)
+                prediction_score[range(input_ids.size(0)), preds] +=1
+
+            pred_c = prediction_score.argmax(dim=-1) # batch_size: 40
+            pred_max_logit = torch.zeros(input_ids.size(0), self.num_classes).to(self.device)
+            pred_max_logit[range(input_ids.size(0)), pred_c] = 1
+            logits = pred_max_logit
+        elif self.vote_type=='avg':
+            logit_tensor_ = torch.stack(logit_score_list)
+            logits = logit_tensor_.mean(dim=0) # Average logit score
+        else:
+            raise Exception("Voting should be either Max or Avg")
 
         # A list of N_a  for each sample in a batch
         pred_max = prediction_score.argmax(dim=1)

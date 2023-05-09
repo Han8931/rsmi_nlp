@@ -139,11 +139,6 @@ def load_checkpoint(model, model_name, ckpt_dir):
     model.load_state_dict(checkpoint['model'])
     return model
 
-def boolean_string(s):
-    if s not in {'False', 'True'}:
-        raise ValueError('Not a valid boolean string')
-    return s == 'True'
-
 def print_args(args):
     """
     Print all arguments in argparser
