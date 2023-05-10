@@ -51,6 +51,7 @@ tokenizer = load_tokenizer(args)
 train_dataloader, test_dataloader, dev_dataloader = \
         trans_dataloader(args.dataset, tokenizer, args)
 
+print(f"Dataset: {args.num_classes}") 
 train_niter = len(train_dataloader)
 total_iter = len(train_dataloader) * args.epochs
 

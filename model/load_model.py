@@ -41,19 +41,7 @@ def load_tokenizer(args):
     return tokenizer
 
 def noisy_forward_loader(args):
-    if 'bert' in args.model:
-        from transformers import BertForSequenceClassification
-
-        if args.model == 'bert-large':
-            model = BertForSequenceClassification.from_pretrained("bert-large-uncased", num_labels=args.num_classes)
-        else:
-            model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=args.num_classes)
-
-        import types
-        from model.model_noise_forward import bert_noise_forward
-        model.bert.encoder.forward = types.MethodType(bert_noise_forward, model.bert.encoder)
-
-    elif 'roberta' in args.model:
+    if 'roberta' in args.model:
         from transformers import RobertaForSequenceClassification
 
         if args.model == 'roberta-large':
@@ -64,6 +52,18 @@ def noisy_forward_loader(args):
         import types
         from model.model_noise_forward import roberta_noise_forward 
         model.roberta.encoder.forward = types.MethodType(roberta_noise_forward, model.roberta.encoder)
+
+    elif 'bert' in args.model:
+        from transformers import BertForSequenceClassification
+
+        if args.model == 'bert-large':
+            model = BertForSequenceClassification.from_pretrained("bert-large-uncased", num_labels=args.num_classes)
+        else:
+            model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=args.num_classes)
+
+        import types
+        from model.model_noise_forward import bert_noise_forward
+        model.bert.encoder.forward = types.MethodType(bert_noise_forward, model.bert.encoder)
 
     else:
         raise Exception("Specify Base model correctly...")

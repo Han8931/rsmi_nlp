@@ -16,7 +16,7 @@ from model.textattack_model import CustomWrapper, print_function, AttackSummary,
 from model.model_adv import *
 from model.load_model import *
 
-from utils.utils import boolean_string, print_args, load_checkpoint, 
+from utils.utils import print_args, load_checkpoint
 from utils.dataloader import text_dataloader
 
 from datetime import timedelta
@@ -37,23 +37,17 @@ if args.seed>-1:
     torch.backends.cudnn.deterministic = True
 
 max_pert_ratio = int(args.max_rate*100) 
-
 n_ens = args.num_ensemble
 egm = args.ens_grad_mask
 gms = args.grad_mask_sample
 mpr = max_pert_ratio
 ql = args.q_limit
 
-if args.nth_data == 0:
-    f_name = "_"+str(args.load_model)+"_"+args.dataset_type+f"_ens_{n_ens}_{mpr}_egm_{egm}_gs_{gms}_nq_{ql}_ts_{args.two_step}.csv"
-else: 
-    f_name = "_"+str(args.load_model)+"_"+args.dataset_type+f"_ens_{n_ens}_{mpr}_egm_{egm}_gs_{gms}_nq_{ql}_ts_{args.two_step}_{args.nth_data}.csv"
+f_name = "_"+str(args.load_model)+"_"+args.dataset_type+".csv"
 adv_path = os.path.join('./data/'+args.dataset+'_'+args.attack_method+f_name)
-
 args.adv_path = adv_path
 
 print("Load Dataset...") 
-
 if args.dataset_type =='test':
     _, test = text_dataloader(args.dataset, args)
     dataset = test.train_test_split(test_size=args.n_trials, seed=0)['test']
@@ -73,15 +67,7 @@ print("----------------------------------")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Create Model 
-print(f"Load Model...")
-
-if args.model == 'bert':
-    from transformers import BertTokenizer
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-elif args.model == 'roberta':
-    from transformers import RobertaTokenizer
-    tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
+tokenizer = load_tokenizer(args)
 
 args.pad_idx = tokenizer.pad_token_id
 args.mask_idx = tokenizer.mask_token_id
@@ -103,7 +89,7 @@ model.eval()
 if args.model_type=='base':
     model_wrapper = HuggingFaceModelWrapper(model, tokenizer, args)
 else:
-    print("Custom Wrapper is used...")
+    # Custom Wrapper for RSMI
     model_wrapper = CustomWrapper(model, tokenizer, args)
 model_wrapper.model.to(device)
 

@@ -23,6 +23,7 @@ def trans_dataloader(dataset, tokenizer, args, data_collator=None):
 
     if dataset == 'ag':
         """0,1,2,3: world, sports, buisiness, Sci/Tech """
+        args.num_classes = 4
         dataset = load_dataset("ag_news")
         test, train = dataset['test'], dataset['train']
 
@@ -31,6 +32,7 @@ def trans_dataloader(dataset, tokenizer, args, data_collator=None):
         dev = split['test']
 
     elif dataset == 'imdb':
+        args.num_classes = 2
         """ Sentiment polarity datasets: binary 0:neg/1:pos """
         dataset = load_dataset("imdb")
         test, train = dataset['test'], dataset['train']
@@ -66,14 +68,13 @@ def trans_dataloader(dataset, tokenizer, args, data_collator=None):
 
 def text_dataloader(dataset, args):
     if dataset == 'ag':
+        args.num_classes = 4
         dataset = load_dataset("ag_news")
         test, train = dataset['test'], dataset['train']
 
         split = train.train_test_split(test_size=0.10, seed=0)
         train = split['train']
         dev = split['test']
-
-        args.num_classes = 4
 
     elif dataset == 'imdb':
         args.num_classes = 2
