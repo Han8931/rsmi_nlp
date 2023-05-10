@@ -90,6 +90,7 @@ if args.model_type=='base':
     model_wrapper = HuggingFaceModelWrapper(model, tokenizer, args)
 else:
     # Custom Wrapper for RSMI
+    print("RSMI Custom Wrapper") 
     model_wrapper = CustomWrapper(model, tokenizer, args)
 model_wrapper.model.to(device)
 
