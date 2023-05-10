@@ -165,7 +165,7 @@ class SeqClsWrapper(nn.Module):
 
         # Some samples are too short to mask tokens
         for b_len in b_length:
-            if b_len.item()<5:
+            if b_len.item()<10:
                 topk = 1
 
         delta_grad_ = self.get_emb_grad(input_ids, attention_mask, pred)
