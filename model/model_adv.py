@@ -281,10 +281,30 @@ class SeqClsWrapper(nn.Module):
                 re_attn = attn_m.repeat(binom_ensemble, 1)
                 masked_ids_re = self.masking_single_function(re_ids, mask_ind)
 
+                #if self.ens_grad_mask=='grad':
+                #    mask_ind, _ = self.grad_mask(input_ids_, attn_m, topk=5, pred=None, mask_filter=True)
+                #    #mask_ind = [mask_indices[j]]
+                #    self.model.zero_grad()           
+                #    re_ids = input_ids_.repeat(binom_ensemble, 1)
+                #    re_attn = attn_m.repeat(binom_ensemble, 1)
+                #    masked_ids_re = self.masking_single_function(re_ids, mask_ind)
+                #elif self.ens_grad_mask=='rand':
+                #    re_ids = input_ids_.repeat(binom_ensemble, 1)
+                #    re_attn = attn_m.repeat(binom_ensemble, 1)
+                #    masked_ids_re = random_masking_function(re_ids, self.pad_idx, self.multi_mask, self.mask_idx) # Randomly mask N tokens
+
                 with torch.no_grad():
                     output_re = self.model(masked_ids_re, re_attn)
+
+                if self.vote_type=='max':
+                    max_vote = np.bincount(output_re['logits'].argmax(dim=-1).tolist(), minlength=self.num_classes)
+                    max_pred = max_vote.argmax()
+                    re_logit_ = torch.zeros(input_ids_.size(0), self.num_classes).to(self.device)
+                    re_logit_[:,max_pred] = 1
+                    logits[j] = re_logit_
+                elif self.vote_type=='avg':
                     re_logit = output_re['logits'].mean(dim=0)
-                logits[j] = re_logit
+                    logits[j] = re_logit
 
         return logits
 
