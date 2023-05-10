@@ -96,7 +96,7 @@ class AttackSummary:
         if reset:
             self.reset()
 
-        out_stat = {"C-Acc" : clean_accuracy*100, "A-Acc" : robust_accuracy*100, "ASR": success_rate*100, 
+        out_stat = {"C-Acc" : clean_accuracy*100, "R-Acc" : robust_accuracy*100, "ASR": success_rate*100, 
                 "Pert": pert_ratio, "Avg-Q": avg_query, "AvgS-Q":avg_succ_q, "AvgF-Q":avg_fail_q} 
 
         return out_stat

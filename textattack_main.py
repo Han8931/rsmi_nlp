@@ -101,27 +101,26 @@ if args.attack_method == 'pwws':
 elif args.attack_method == 'textfooler':
     from textattack.attack_recipes import TextFoolerJin2019
     attack = TextFoolerJin2019.build(model_wrapper)
+else:
+    raise Exception("Not Implemented")
 
 attack.goal_function.maximizable = False
 attack.goal_function.batch_size = args.adv_batch_size
 print(attack)
 
-n_trial = 0
 num_successes = 0
 num_skipped = 0
 num_failed = 0
 
-total_queries = 0
-
 df_adv = pd.DataFrame()
 attack_result = AttackSummary(args.max_seq_length)
 
-n_exception = 0
-n_pred_error = 0
+# n_exception = 0
+# n_pred_error = 0
 
-avg_pert = []
-avg_query = []
-avg_words = []
+# avg_pert = []
+# avg_query = []
+# avg_words = []
 
 start_t_gen = time.perf_counter()
 
@@ -134,7 +133,7 @@ for batch_idx, batch in enumerate(dataloader):
     text_len = len(orig.split(" "))
 
     if text_len>args.max_seq_length:
-        orig = " ".join(orig.split(" ")[:256])
+        orig = " ".join(orig.split(" ")[:args.max_seq_length])
         text_len = args.max_seq_length
 
     if args.q_limit>0:
