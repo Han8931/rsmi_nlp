@@ -250,14 +250,15 @@ class SeqClsWrapper(nn.Module):
 
         prediction_score = torch.zeros(input_ids.size(0), self.num_classes).to(self.device)
 
-        if self.vote_type=='max':
-            for logit_ in logit_score_list:
-                preds = logit_.argmax(dim=-1)
-                prediction_score[range(input_ids.size(0)), preds] +=1
+        for logit_ in logit_score_list:
+            preds = logit_.argmax(dim=-1)
+            prediction_score[range(input_ids.size(0)), preds] +=1
 
-            pred_c = prediction_score.argmax(dim=-1) # batch_size: 40
-            pred_max_logit = torch.zeros(input_ids.size(0), self.num_classes).to(self.device)
-            pred_max_logit[range(input_ids.size(0)), pred_c] = 1
+        pred_c = prediction_score.argmax(dim=-1) # batch_size: 40
+        pred_max_logit = torch.zeros(input_ids.size(0), self.num_classes).to(self.device)
+        pred_max_logit[range(input_ids.size(0)), pred_c] = 1
+
+        if self.vote_type=='max':
             logits = pred_max_logit
         elif self.vote_type=='avg':
             logit_tensor_ = torch.stack(logit_score_list)
