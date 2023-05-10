@@ -59,7 +59,7 @@ def get_parser(process_type: str):
     parser.add_argument('--dataset', default='imdb', type=str, help='Dataset', choices=['ag', 'imdb'])
     parser.add_argument('--num_classes', type=int, default=2, help='Number of classes of datasets')
     parser.add_argument('--pad_idx', type=int, default=0, help='Padding idx')
-    parser.add_argument('--max_seq_length', type=int, default=512, help='Maximum sequence length')
+    parser.add_argument('--max_seq_length', type=int, default=256, help='Maximum sequence length')
 
     parser.add_argument('--binom_p', action="store_true", help='Ensemble with high-confident samples')
     parser.add_argument('--alpha_p', default=0.70, type=float, help='Statistical significance')
