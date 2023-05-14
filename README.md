@@ -6,10 +6,6 @@
 
 - Accepted for Association for Computational Linguistics (**_ACL'23_**)  
 
-## Setup
-1. Pip installation
-2. Docker
-
 ## Train Models:
 
 - Fine-tune PLMs
