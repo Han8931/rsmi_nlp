@@ -15,7 +15,7 @@ CUDA_VISIBLE_DEVICES=0 python3 main_base.py --model_dir_path ./cls_task/checkpoi
 
 - RSMI models
 ```
-CUDA_VISIBLE_DEVICES=0 python3 main_org_seq.py --model_dir_path ./cls_task/checkpoint/ --dataset ag --batch_size 16 --epochs 10 --save_model rsmi_roberta_ag --model roberta --nth_layers 3 --noise_eps 0.2 --max_seq_length 256 --multi_mask 2 --custom_forward --save
+CUDA_VISIBLE_DEVICES=0 python3 main_rsmi.py --model_dir_path ./cls_task/checkpoint/ --dataset ag --batch_size 16 --epochs 10 --save_model rsmi_roberta_ag --model roberta --nth_layers 3 --noise_eps 0.2 --max_seq_length 256 --multi_mask 2 --custom_forward --save
 ```
 
 ## Attack Models:
